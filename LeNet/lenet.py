@@ -1,8 +1,6 @@
 '''
 Created on Mon January  30 23:00:08 2023
-
 @author: rohit krishna
-@mail: dev.rohitnp@gmail.com
 '''
 
 import torch
