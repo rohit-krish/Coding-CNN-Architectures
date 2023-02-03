@@ -1,6 +1,8 @@
 '''
 Created on Fri February  03 10:50:32 2023
 @author: rohit krishna
+
+Original Paper: https://arxiv.org/abs/1409.4842
 '''
 
 import torch
