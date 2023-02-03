@@ -8,12 +8,11 @@ from torch import nn
 
 
 class GoogLeNet(nn.Module):
-    def __init__(self, in_channels=3, num_classes=1000):
+    def __init__(self, num_classes=1000, aux_logits=True):
         super().__init__()
+        self.aux_logits = aux_logits
 
-        self.conv1 = ConvBlock(
-            in_channels, 64, kernel_size=7, stride=2, padding=3
-        )
+        self.conv1 = ConvBlock(3, 64, kernel_size=7, stride=2, padding=3)
         self.conv2 = ConvBlock(64, 192, kernel_size=3, stride=1, padding=1)
 
         self.incpetion3a = InceptionBlock(192, 64, 96, 128, 16, 32, 32)
@@ -33,6 +32,13 @@ class GoogLeNet(nn.Module):
         self.dropout = nn.Dropout(.4)
         self.fc1 = nn.Linear(1024, num_classes)
 
+        if self.aux_logits:
+            self.aux1 = InceptionAux(512, num_classes)
+            self.aux2 = InceptionAux(528, num_classes)
+        else:
+            self.aux1 = None
+            self.aux2 = None
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.maxpool(x)
@@ -44,9 +50,19 @@ class GoogLeNet(nn.Module):
         x = self.maxpool(x)
 
         x = self.incpetion4a(x)
+        
+        # auxiliary softmax classifer 1
+        if self.aux_logits and self.training:
+            aux1 = self.aux1(x)
+
         x = self.incpetion4b(x)
         x = self.incpetion4c(x)
         x = self.incpetion4d(x)
+
+        # auxiliary softmax classifer 2
+        if self.aux_logits and self.training:
+            aux2 = self.aux2(x)
+
         x = self.incpetion4e(x)
         x = self.maxpool(x)
 
@@ -58,7 +74,10 @@ class GoogLeNet(nn.Module):
         x = self.dropout(x)
         x = self.fc1(x)
 
-        return x
+        if self.aux_logits and self.training:
+            return aux1, aux2, x
+        else:
+            return x
 
 
 class InceptionBlock(nn.Module):
@@ -88,6 +107,26 @@ class InceptionBlock(nn.Module):
         ], 1)
 
 
+class InceptionAux(nn.Module):  # inception auxilary classifier
+    def __init__(self, in_channels, num_classes):
+        super().__init__()
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(.7)
+        self.avg_pool = nn.AvgPool2d(kernel_size=5, stride=3)
+        self.conv = ConvBlock(in_channels, 128, kernel_size=1)
+        self.fc1 = nn.Linear(2048, 1024)
+        self.fc2 = nn.Linear(1024, num_classes)
+
+    def forward(self, x):
+        x = self.avg_pool(x)
+        x = self.conv(x)
+        x = x.reshape(len(x), -1)
+        x = self.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs):
         super().__init__()
@@ -102,7 +141,9 @@ class ConvBlock(nn.Module):
 if __name__ == '__main__':
     x = torch.randn(3, 3, 224, 224)
     model = GoogLeNet()
-    pred = model(x)
+    preds = model(x)
     assert (
-        pred.shape == (3, 1000) and print('All good :)') == None
+        preds[2].shape == (3, 1000) and print('All good :)') == None
     ), 'Shapes don\'t match :('
+
+    print([pred.shape for pred in preds])
