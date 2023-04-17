@@ -72,8 +72,10 @@ class Block(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
         super().__init__()
         self.expansion = 4
-        self.conv1 = nn.Conv2d(in_channels, out_channels,
-                               kernel_size=1, bias=False)
+        self.conv1 = nn.Conv2d(
+            in_channels, out_channels,
+            kernel_size=1, bias=False
+        )
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.conv2 = nn.Conv2d(
             out_channels, out_channels,
@@ -98,7 +100,6 @@ class Block(nn.Module):
         # print(list(x.shape), list(identity.shape))
         if self.identity_downsample != None:
             identity = self.identity_downsample(identity)
-        
 
         x += identity
         x = self.relu(x)
