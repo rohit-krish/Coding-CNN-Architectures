@@ -110,7 +110,7 @@ def resnet50(img_channels=3, n_classes=1000):
     return ResNet([3, 4, 6, 3], img_channels, n_classes)
 
 
-def resnet10(img_channels=3, n_classes=1000):
+def resnet101(img_channels=3, n_classes=1000):
     return ResNet([3, 4, 23, 3], img_channels, n_classes)
 
 
