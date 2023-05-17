@@ -1,7 +1,3 @@
-# NEXT; train the model on this cusotm model, then xception, build the web app then obj detection
-
-# CRF, give all the options(different models, and CRF) in the web app
-
 '''
 Created on Sat May  06 00:53:00 2023
 @author: rohit krishna

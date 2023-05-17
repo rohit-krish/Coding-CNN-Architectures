@@ -5,6 +5,7 @@ Coding Neural Network architectures using PyTorch
 - U-Net
 - SegNet
 
+- MobileNet
 - EfficientNet
 - GoogleNet
 - ResNet
